@@ -1,0 +1,147 @@
+﻿@model SearchResult
+@{
+    ViewData["Title"] = "Search Books";
+}
+
+<h2>Search Books</h2>
+
+<div style="position: relative;">
+    <input type="text" id="searchBox" class="form-control" placeholder="Start typing to search..." autocomplete="off" />
+    <ul id="autocompleteDropdown" class="dropdown-menu" style="position: absolute; display: none; z-index: 1000;"></ul>
+</div>
+<button id="searchButton" class="btn btn-primary mt-2">Search</button>
+
+<div id="results" class="mt-4">
+    @if (Model != null)
+    {
+        @if (Model.Count > 0)
+        {
+            <ul class="list-group">
+                @foreach (var book in Model.Books)
+                {
+                    <li class="list-group-item">
+                        <strong>@book.Title</strong> by @book.Authors <br />
+                        <em>@book.Description</em> <br />
+                        <span class="badge bg-secondary">@book.Category</span>
+                        <span class="badge bg-info">@book.Year</span>
+                    </li>
+                }
+            </ul>
+
+            <nav class="mt-4">
+                <ul class="pagination">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Books/Search?query=@(Model.Query)&page=@(Model.CurrentPage - 1)">Previous</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">Previous</span>
+                        </li>
+                    }
+
+                    <!-- First Page -->
+                    @if (Model.CurrentPage > 3)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Books/Search?query=@(Model.Query)&page=1">1</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+
+                    <!-- Nearby Pages -->
+                    @for (int i = Math.Max(0, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages - 1, Model.CurrentPage + 2); i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="/Books/Search?query=@(Model.Query)&page=@i">@(i + 1)</a>
+                        </li>
+                    }
+
+                    <!-- Last Page -->
+                    @if (Model.CurrentPage < Model.TotalPages - 2)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="/Books/Search?query=@(Model.Query)&page=@Model.TotalPages">@Model.TotalPages</a>
+                        </li>
+                    }
+
+                    @if (Model.HasNextPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="/Books/Search?query=@(Model.Query)&page=@(Model.CurrentPage + 1)">Next</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">Next</span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+        else
+        {
+            <p>No results found.</p>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            let $searchBox = $('#searchBox');
+            let $autocompleteDropdown = $('#autocompleteDropdown');
+            let $searchButton = $('#searchButton');
+
+            // Autocomplete function
+            $searchBox.on('input', function () {
+                let term = $searchBox.val();
+                if (term.length < 3) {
+                    $autocompleteDropdown.hide();
+                    return;
+                }
+
+                $.getJSON('/Books/Autocomplete', { term: term }, function (data) {
+                    if (data.length > 0) {
+                        let dropdownItems = data.map(item => `<li class="dropdown-item">${item}</li>`);
+                        $autocompleteDropdown.html(dropdownItems.join('')).show();
+                    } else {
+                        $autocompleteDropdown.hide();
+                    }
+                });
+            });
+
+            // Select an autocomplete suggestion
+            $autocompleteDropdown.on('click', '.dropdown-item', function () {
+                let selectedText = $(this).text();
+                $searchBox.val(selectedText);
+                $autocompleteDropdown.hide();
+            });
+
+            // Hide dropdown when clicking outside
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#autocompleteDropdown, #searchBox').length) {
+                    $autocompleteDropdown.hide();
+                }
+            });
+
+            // Search button click handler
+            $searchButton.on('click', function () {
+                let query = $searchBox.val();
+                if (query) {
+                    window.location.href = `/Books/Search?query=${encodeURIComponent(query)}`;
+                }
+            });
+        });
+    </script>
+}

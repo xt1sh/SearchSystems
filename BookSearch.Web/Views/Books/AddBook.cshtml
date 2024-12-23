@@ -1,0 +1,48 @@
+﻿@using BookSearch.Global.Models
+@model Book
+
+@{
+    ViewData["Title"] = "Add Book";
+}
+
+<h2>Add Book</h2>
+
+<form asp-action="AddBook" method="post">
+    <div class="form-group">
+        <label asp-for="Title" class="control-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Authors" class="control-label"></label>
+        <input asp-for="Authors" class="form-control" />
+        <span asp-validation-for="Authors" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description" class="control-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Category" class="control-label"></label>
+        <input asp-for="Category" class="form-control" />
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Year" class="control-label"></label>
+        <input asp-for="Year" class="form-control" type="number" />
+        <span asp-validation-for="Year" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
